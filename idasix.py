@@ -1,3 +1,14 @@
+IDA_SDK_VERSION = None
+try:
+  import ida_idaapi
+  IDA_SDK_VERSION = ida_idaapi.IDA_SDK_VERSION
+except ImportError:
+  import idaapi
+  IDA_SDK_VERSION = idaapi.IDA_SDK_VERSION
+
+if not IDA_SDK_VERSION:
+  raise Exception("Couldn't figure out IDA version")
+
 # Handle different Qt versions. instead of:
 # 1. `from PySide import QtCore, QtGui` or
 # 2. `form PyQt5 import QtCore, QtWidgets`
@@ -6,29 +17,20 @@
 QtGui = None
 QtWidgets = None
 QtCore = None
-try:
+if IDA_SDK_VERSION >= 690:
   # IDA version >= 6.9
   from PyQt5 import QtCore, QtGui, QtWidgets
-except ImportError:
-  pass
-try:
+elif IDA_SDK_VERSION < 690:
   # IDA version <= 6.8
   from PySide import GtCore, QtGui
   QtWidgets = QtGui
-except ImportError:
-  pass
 
 
-#
-try:
+if IDA_SDK_VERSION >= 695:
   import ida_idaapi
-except ImportError:
-  pass
-try:
+elif IDA_SDK_VERSION < 695:
   import idaapi
   ida_idaapi = idaapi
-except ImportError:
-  pass
 
 
 class Version(object):
