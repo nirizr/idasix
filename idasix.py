@@ -20,10 +20,12 @@ QtCore = None
 if IDA_SDK_VERSION >= 690:
   # IDA version >= 6.9
   from PyQt5 import QtCore, QtGui, QtWidgets
+  _ = QtCore
 elif IDA_SDK_VERSION < 690:
   # IDA version <= 6.8
-  from PySide import GtCore, QtGui
+  from PySide import QtCore, QtGui
   QtWidgets = QtGui
+  _ = QtCore
 
 
 if IDA_SDK_VERSION >= 695:
@@ -52,9 +54,10 @@ class Fix(object):
     to successfully load python packages installed in site-packages.
 
     IDA for linux/osx was using the machine's installed python instead of a
-    packaged version, but that version was running without using site-packages.
-    This made a user unable to install python packages and use them within ida
-    without going through quite a bit of truble, without using this.
+    packaged version, but that version was running without using
+    site-packages. This made a user unable to install python packages and use
+    them within ida without going through quite a bit of truble, without
+    using this.
     """
     import sys
     import os
@@ -62,29 +65,34 @@ class Fix(object):
 
   @staticmethod
   def actionhandlerobject():
-    """Before IDA 6.95, `action_handler_t` does not inherit from `object` and that
-    makes some python magic fail. Since 6.95 `action_handler_t` inherits `object`.
-    This fix makes reachable `action_handler_t` inherit from `object` before 6.95.
+    """Before IDA 6.95, `action_handler_t` does not inherit from `object` and
+    that makes some python magic fail. Since 6.95 `action_handler_t` inherits
+    `object`. This fix makes reachable `action_handler_t` inherit from
+    `object` before 6.95.
     """
-    # this makes sure we have an `object` inheriting action_handler_t regardless of version
+    # this makes sure we have an `object` inheriting action_handler_t
+    # regardless of version
     if IDA_SDK_VERSION >= 695:
       action_handler_t_object = ida_kernwin.action_handler_t
     else:
       class action_handler_t_object(object, ida_kernwin.action_handler_t):
-        "A base object created by `idasix.Fix.actionhandlerobject` to inherit `object`."
+        """A base object created by `idasix.Fix.actionhandlerobject` to inherit
+        `object`."""
         pass
 
     class action_handler_metaclass(type):
       def __new__(meta, name, bases, dct):
         bases = tuple(base for base in bases if base is not object)
-        return super(action_handler_metaclass, meta).__new__(meta, name, bases, dct)
+        return super(action_handler_metaclass, meta).__new__(meta, name,
+                                                             bases, dct)
 
     class action_handler_t_objprotector(action_handler_t_object):
-      """An object inheriting from ``idasix.Fix.action_handler_t_object` that uses a metaclass
-      to protect against multiple `object` inharitance. This makes sure that `object` is only
-      inherited once even when a user manually inherits from it again"""
+      """An object inheriting from ``idasix.Fix.action_handler_t_object` that
+      uses a metaclass to protect against multiple `object` inharitance. This
+      makes sure that `object` is only inherited once even when a user
+      manually inherits from it again"""
       __metaclass__ = action_handler_metaclass
-      
+
     ida_kernwin.action_handler_t = action_handler_t_objprotector
 
 Fix.packagespath()

@@ -1,1 +1,1 @@
-from .idasix import *
+from .idasix import * # noqa: F401,F403
