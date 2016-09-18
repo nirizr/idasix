@@ -1,7 +1,7 @@
 IDA_SDK_VERSION = None
 try:
-  import ida_idaapi
-  IDA_SDK_VERSION = ida_idaapi.IDA_SDK_VERSION
+  import ida_pro
+  IDA_SDK_VERSION = ida_pro.IDA_SDK_VERSION
 except ImportError:
   import idaapi
   IDA_SDK_VERSION = idaapi.IDA_SDK_VERSION
@@ -28,9 +28,13 @@ elif IDA_SDK_VERSION < 690:
 
 if IDA_SDK_VERSION >= 695:
   import ida_idaapi
+  import ida_pro
+  import ida_kernwin
 elif IDA_SDK_VERSION < 695:
   import idaapi
   ida_idaapi = idaapi
+  ida_pro = idaapi
+  ida_kernwin = idaapi
 
 
 class Version(object):
@@ -43,7 +47,7 @@ class Version(object):
 
 class Fix(object):
   @staticmethod
-  def idapackagespath():
+  def packagespath():
     """Hack required in relatively old IDA linux/osx versions (around 6.4/5)
     to successfully load python packages installed in site-packages.
 
@@ -55,3 +59,33 @@ class Fix(object):
     import sys
     import os
     sys.path += [os.path.join(sys.prefix, "Lib", "site-packages")]
+
+  @staticmethod
+  def actionhandlerobject():
+    """Before IDA 6.95, `action_handler_t` does not inherit from `object` and that
+    makes some python magic fail. Since 6.95 `action_handler_t` inherits `object`.
+    This fix makes reachable `action_handler_t` inherit from `object` before 6.95.
+    """
+    # this makes sure we have an `object` inheriting action_handler_t regardless of version
+    if IDA_SDK_VERSION >= 695:
+      action_handler_t_object = ida_kernwin.action_handler_t
+    else:
+      class action_handler_t_object(object, ida_kernwin.action_handler_t):
+        "A base object created by `idasix.Fix.actionhandlerobject` to inherit `object`."
+        pass
+
+    class action_handler_metaclass(type):
+      def __new__(meta, name, bases, dct):
+        bases = tuple(base for base in bases if base is not object)
+        return super(action_handler_metaclass, meta).__new__(meta, name, bases, dct)
+
+    class action_handler_t_objprotector(action_handler_t_object):
+      """An object inheriting from ``idasix.Fix.action_handler_t_object` that uses a metaclass
+      to protect against multiple `object` inharitance. This makes sure that `object` is only
+      inherited once even when a user manually inherits from it again"""
+      __metaclass__ = action_handler_metaclass
+      
+    ida_kernwin.action_handler_t = action_handler_t_objprotector
+
+Fix.packagespath()
+Fix.actionhandlerobject()
