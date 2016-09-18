@@ -44,7 +44,7 @@ class Version(object):
   @staticmethod
   def idakernel64bit():
     """Returns True if running with a 64bit IDA kernel, False otherwise"""
-    return ida_idaapi.BADADDR == 0xFFFFFFFFFFFFFFFFL
+    return ida_idaapi.BADADDR == 0xFFFFFFFFFFFFFFFF
 
 
 class Fix(object):
