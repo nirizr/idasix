@@ -18,7 +18,8 @@ Currently addressed issues are:
 
 1. `action_handler_t` is not a python class (Doesn't inherit `Object`) before IDA version 6.95. idasix makes sure `action_handler_t` always inherits `Object`, which enables some more python magic.
 2. Linux IDA versions have an issue with using packages installed by the external python interpreter. This is a mishap by IDA. idasix adds the right "site-packages" directory to the list of python packages.
-3. with IDA version 6.9, PySide (a python Qt4 library) was replaced with pyqt (using newer Qt5). idasix exposes one interface (`form idasix import QtGui`) to the appropriate version and tries mitigating some of the differences between Qt5 and 4.
+3. With IDA version 6.9, PySide (a python Qt4 library) was replaced with pyqt (using newer Qt5). idasix exposes one interface (`form idasix import QtGui`) to the appropriate version and tries mitigating some of the differences between Qt5 and 4.
+4. Expose `QtCore.Signal` and `QtCore.Slot` from `idasix.QtCore` in IDA versions using pyqt5.
 
 # Projects using idasix
 

@@ -95,5 +95,19 @@ class Fix(object):
 
     ida_kernwin.action_handler_t = action_handler_t_objprotector
 
+  @staticmethod
+  def qtsignalslot():
+    """While pre-6.8 qt4 library pyside exposted `Qtcore.Signal` and
+    `QtCore.Slot`, new pyqt library exposes those same methods as
+    `QtCore.pyqtSignal` and `QtCore.pyqtSlot`. This fix makes sure
+    `Qtcore.Signal` and `QtCore.Slot` are always available"""
+    if IDA_SDK_VERSION >= 690:
+      QtCore.Signal = QtCore.pyqtSignal
+      QtCore.Slot = QtCore.pyqtSlot
+    elif IDA_SDK_VERSION < 690:
+      pass
+
+
 Fix.packagespath()
 Fix.actionhandlerobject()
+Fix.qtsignalslot()
