@@ -39,14 +39,6 @@ elif IDA_SDK_VERSION < 695:
   ida_kernwin = idaapi
 
 
-class Version(object):
-  """Version related helper methods"""
-  @staticmethod
-  def idakernel64bit():
-    """Returns True if running with a 64bit IDA kernel, False otherwise"""
-    return ida_idaapi.BADADDR == 0xFFFFFFFFFFFFFFFF
-
-
 class Fix(object):
   @staticmethod
   def packagespath():
