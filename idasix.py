@@ -149,15 +149,51 @@ class Fix(object):
 
     @staticmethod
     def qtsignalslot():
-        """While pre-6.8 qt4 library pyside exposted `Qtcore.Signal` and
+        """While pre-6.8 qt4 library pyside exposed `Qtcore.Signal` and
         `QtCore.Slot`, new pyqt library exposes those same methods as
         `QtCore.pyqtSignal` and `QtCore.pyqtSlot`. This fix makes sure
-        `Qtcore.Signal` and `QtCore.Slot` are always available"""
-        if IDA_SDK_VERSION >= 690:
+        `Qtcore.Signal` and `QtCore.Slot` are always available.
+
+        While pyqt4 and pyside are equivalent, they are different implementations.
+        Therefore some slight variations and bugs may manifest in one but not the
+        other. An example of this is pyside's buggy handling of callback closures.
+        """
+
+        class idasix_
+
+        if IDA_SDK_VERSION >= 700:
+            # pyqt5 is available
+            QtCore.Signal = QtCore.pyqtSignal
+            QtCore.Slot = QtCore.pyqtSlot
+        elif IDA_SDK_VERSION >= 690:
+            # pyqt4 is available
             QtCore.Signal = QtCore.pyqtSignal
             QtCore.Slot = QtCore.pyqtSlot
         elif IDA_SDK_VERSION < 690:
-            pass
+            # pyside is available
+            class pysideSignal_wrapper(QtCore.QObject):
+                pysideSignal_cls = QtCore.Signal
+                pysideSignalInstance = QtCore.Signal(dict)
+
+                def __init__(self, *args, **kwargs):
+                  self.pysideSignal_obj = self.pysideSignal_cls(*args, **kwargs)
+
+                def __getattr__(self, attr):
+                  print(self, self.pysideSignalInstance, attr)
+                  return getattr(self.pysideSignal_obj, attr)
+
+                def connect(self, callback, *w_args, **w_kwargs):
+                  print(self, callback)
+                  wrapped_callback = lambda *args, **kwargs: callback(*args, **kwargs)
+                  return self.pysideSignal_obj.connect(wrapped_callback, *w_args, **w_kwargs)
+
+              QtCore.Signal = pysideSignal_wrapper
+              print(pysideSignal_wrapper.pysideSignalInstance, type(pysideSignal_wrapper.pysideSignalInstance))
+              i = pysideSignal_wrapper()
+              print(i, type(i))
+              print(i.connect)
+              i.connect = None
+
 
     @staticmethod
     def idaname_getname():
