@@ -28,15 +28,25 @@ elif IDA_SDK_VERSION < 690:
   _ = QtCore
 
 
+modules = ['ida_idaapi', 'ida_auto', 'ida_dbg', 'ida_diskio', 'ida_entry',
+           'ida_enum', 'ida_expr', 'ida_fixup', 'ida_frame', 'ida_funcs',
+           'ida_gdl', 'ida_ida', 'ida_bytes', 'ida_idd', 'ida_idp',
+           'ida_kernwin', 'ida_lines', 'ida_loader', 'ida_moves', 'ida_nalt',
+           'ida_name', 'ida_netnode', 'ida_offset', 'ida_pro', 'ida_search',
+           'ida_segment', 'ida_srarea', 'ida_struct', 'ida_typeinf', 'ida_ua',
+           'ida_xref']
 if IDA_SDK_VERSION >= 695:
   import ida_idaapi
   import ida_pro
   import ida_kernwin
+  for module in modules:
+    globals()[module] = __import__(module)
 elif IDA_SDK_VERSION < 695:
-  import idaapi
   ida_idaapi = idaapi
   ida_pro = idaapi
   ida_kernwin = idaapi
+  for module in modules:
+    globals()[module] = idaapi
 
 
 class Fix(object):
