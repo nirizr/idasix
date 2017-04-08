@@ -34,7 +34,7 @@ modules = ['ida_idaapi', 'ida_auto', 'ida_dbg', 'ida_diskio', 'ida_entry',
            'ida_kernwin', 'ida_lines', 'ida_loader', 'ida_moves', 'ida_nalt',
            'ida_name', 'ida_netnode', 'ida_offset', 'ida_pro', 'ida_search',
            'ida_segment', 'ida_srarea', 'ida_struct', 'ida_typeinf', 'ida_ua',
-           'ida_xref']
+           'ida_xref', 'ida_graph']
 if IDA_SDK_VERSION >= 695:
   import ida_idaapi
   import ida_pro
@@ -42,11 +42,13 @@ if IDA_SDK_VERSION >= 695:
   for module in modules:
     globals()[module] = __import__(module)
 elif IDA_SDK_VERSION < 695:
+  import sys
+
   ida_idaapi = idaapi
   ida_pro = idaapi
   ida_kernwin = idaapi
   for module in modules:
-    globals()[module] = idaapi
+    sys.modules[module] = idaapi
 
 
 class Fix(object):
