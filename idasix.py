@@ -87,10 +87,10 @@ class Fix(object):
         pass
 
     class action_handler_metaclass(type):
-      def __new__(meta, name, bases, dct):
+      def __new__(cls, name, bases, dct):
         bases = tuple(base for base in bases if base is not object)
-        return super(action_handler_metaclass, meta).__new__(meta, name,
-                                                             bases, dct)
+        return super(action_handler_metaclass, cls).__new__(cls, name, bases,
+                                                            dct)
 
     class action_handler_t_objprotector(action_handler_t_object):
       """An object inheriting from ``idasix.Fix.action_handler_t_object` that
