@@ -78,7 +78,7 @@ class Fix(object):
         """
         # this makes sure we have an `object` inheriting action_handler_t
         # regardless of version
-        if IDA_SDK_VERSION >= 695:
+        if issubclass(ida_kernwin.action_handler_t, object):
             action_handler_t_obj = ida_kernwin.action_handler_t
         else:
             class action_handler_t_obj(object,  # noqa: N801
