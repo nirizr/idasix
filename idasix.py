@@ -67,15 +67,25 @@ class Fix(object):
         """
         import sys
         import os
-        sys.path += [os.path.join(sys.prefix, "Lib", "site-packages")]
+        new_path = os.path.join(sys.prefix, "Lib", "site-packages")
+        if os.path.exists(new_path) and new_path not in sys.path:
+            sys.path += [new_path]
 
     @staticmethod
     def actionhandlerobject():
         """Before IDA 6.95, `action_handler_t` does not inherit from `object`
         and that makes some python magic fail. Since 6.95 `action_handler_t`
         inherits `object`. This fix makes reachable `action_handler_t` inherit
-        from `object` before 6.95.
+        from `object` before 6.95, and also protects against multiple-object
+        inheritance.
         """
+        # if action_handler_t is already defined from within a module named
+        # the same as our module, method has been called for the second time
+        # and should be ignored.
+        action_handler_t_name = ida_kernwin.action_handler_t.__name__
+        if action_handler_t_name == "action_handler_t_objprotect":
+            return
+
         # this makes sure we have an `object` inheriting action_handler_t
         # regardless of version
         if issubclass(ida_kernwin.action_handler_t, object):
@@ -87,6 +97,8 @@ class Fix(object):
                 inherit `object`."""
                 pass
 
+        # this makes sure object will not be inherited for a second time, which
+        # is an issue for certain ida versions.
         class action_handler_mc(type):  # noqa: N801
             def __new__(cls, name, bases, dct):
                 bases = tuple(base for base in bases if base is not object)
