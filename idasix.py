@@ -45,6 +45,7 @@ if IDA_SDK_VERSION >= 695:
         globals()[module] = __import__(module)
 elif IDA_SDK_VERSION < 695:
     import sys
+    import idaapi
 
     ida_idaapi = idaapi
     ida_pro = idaapi
