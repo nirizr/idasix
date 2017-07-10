@@ -2,12 +2,13 @@
 IDAPython compatibility library. idasix aims to create a smooth ida development process and allow a single codebase to function with multiple IDA/IDAPython versions. It is supposed to be a very slim module that should be easily included in third party modules that would otherwise rather avoid dependencies, by directly including it inside their repository.
 
 # Inclusion in projects
-One of idasix's goals is ease of incorporation inside any user project. Therefore, it is built as a single file that can be easily copied to any repository. For the same reason it is also built without directory hierarchies, so submoduling idasix and importing it will also work.
+One of idasix's goals is ease of incorporation inside any user project. Therefore, it is built as a single file that can be easily copied to any repository. For the same reason it is also built without directory hierarchies, so submoduling idasix and importing it will also work. It is also possible to provide idasix as an independent IDA plugin, in which case idasix will automatically provide it's functionalities without being imported from any specific idapython plugin.
 
 idasix is designed not to break if multiple versions and copies are included in multiple projects. It protects itself from causing harm.
 
 # Usage
 once idasix is included in your project, it should be your source of IDA related modules.
+While the modules you're used to will be automatically loaded by idasix, it is encouraged to import from it instead of original modules when manually importing.
 Instead of `import idaapi` you should use `from idasix import idaapi`.
 Instead of `from PySide import QtGui` you should write `from idasix import QtGui`, which will provide you with a QtGui module regardless of IDA version (i.e. for both PySide and PyQt5).
 
