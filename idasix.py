@@ -45,6 +45,7 @@ if IDA_SDK_VERSION >= 695:
         globals()[module] = __import__(module)
 elif IDA_SDK_VERSION < 695:
     import sys
+    import idaapi
 
     ida_idaapi = idaapi
     ida_pro = idaapi
@@ -53,6 +54,29 @@ elif IDA_SDK_VERSION < 695:
         sys.modules[module] = idaapi
 
 
+# expose an ida plugin so when this is loaded as a plugin, ida will keep it
+# loaded. this enables using idasix as an independent ida plugin instead of
+# carrying idasix with every module.
+class DummyIDASixPlugin(ida_idaapi.plugin_t):
+    # Load when IDA starts and don't unload until it exits
+    flags = ida_idaapi.PLUGIN_FIX
+
+    def init(self, *args, **kwargs):
+        super(DummyIDASixPlugin, self).__init__(*args, **kwargs)
+        return ida_idaapi.PLUGIN_KEEP
+
+    def run(self):
+        pass
+
+    def term(self):
+        pass
+
+
+def PLUGIN_ENTRY():  # noqa: N802
+    return DummyIDASixPlugin()
+
+
+# methods in charge of actually fixing ida-related differances between versions
 class Fix(object):
     @staticmethod
     def packagespath():
