@@ -50,6 +50,7 @@ elif IDA_SDK_VERSION < 695:
     ida_idaapi = idaapi
     ida_pro = idaapi
     ida_kernwin = idaapi
+    ida_name = idaapi
     for module in modules_list:
         sys.modules[module] = idaapi
 
@@ -103,9 +104,9 @@ class Fix(object):
         from `object` before 6.95, and also protects against multiple-object
         inheritance.
         """
-        # if action_handler_t is already defined from within a module named
-        # the same as our module, method has been called for the second time
-        # and should be ignored.
+        # if action_handler_t is already defined and has the name of our mocked
+        # fucntion, this method has been called for the second time and should
+        # be ignored.
         action_handler_t_name = ida_kernwin.action_handler_t.__name__
         if action_handler_t_name == "action_handler_t_objprotect":
             return
@@ -150,7 +151,46 @@ class Fix(object):
         elif IDA_SDK_VERSION < 690:
             pass
 
+    @staticmethod
+    def ida_name_get_name():
+        """In IDA 7.0, the function `ida_name.get_name` dropped it's first
+        input parameter. This replaces the function to a dummy function that
+        can handle both scenarios."""
+
+        # if get_name is already defined and has the name of our mocked
+        # fucntion, this method has been called for the second time and should
+        # be ignored.
+        getname_name = ida_name.get_name.__name__
+        if getname_name.startswith("idasix_get_name_"):
+            return
+
+        # Build a function that would throw the 1st argument in case 2
+        # arguments were given to it. This will handle IDA 6 code calling an
+        # IDA 7 method.
+        def idasix_get_name_7(*args):
+            if len(args) == 2:
+                args = args[1:]
+            return ida_name.get_name(*args)
+
+        # Build a function to add the default value in the 1st argument in case
+        # only one argument was given to it. This will handle IDA 7 code
+        # calling an IDA 6 method.
+        def idasix_get_name_6(*args):
+            if len(args) == 1:
+                args = [-1] + args
+            return ida_name.get_name(*args)
+
+        # Override real IDA API functions with the correct patch based on IDA
+        # version. In case of IDA < 6.95, changing the function in the ida_name
+        # module will suffice although the actual implemetnation is in idaapi
+        # so there's no need to replace both.
+        if IDA_SDK_VERSION >= 700:
+            ida_name.get_name = idasix_get_name_7
+        else:
+            ida_name.get_name = idasix_get_name_6
+
 
 Fix.packagespath()
 Fix.actionhandlerobject()
 Fix.qtsignalslot()
+Fix.idaname_getname()
