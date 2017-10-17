@@ -160,7 +160,7 @@ class Fix(object):
             pass
 
     @staticmethod
-    def ida_name_get_name():
+    def idaname_getname():
         """In IDA 7.0, the function `ida_name.get_name` dropped it's first
         input parameter. This replaces the function to a dummy function that
         can handle both scenarios."""
@@ -172,21 +172,25 @@ class Fix(object):
         if getname_name.startswith("idasix_get_name_"):
             return
 
+        # save original function, so wrappers could call it directly
+        get_name_original = ida_name.get_name
+
         # Build a function that would throw the 1st argument in case 2
         # arguments were given to it. This will handle IDA 6 code calling an
-        # IDA 7 method.
+        # IDA 7 method, while keeping IDA 6 calling IDA 6 method intact.
         def idasix_get_name_7(*args):
             if len(args) == 2:
                 args = args[1:]
-            return ida_name.get_name(*args)
+            return get_name_original(*args)
 
         # Build a function to add the default value in the 1st argument in case
         # only one argument was given to it. This will handle IDA 7 code
-        # calling an IDA 6 method.
+        # calling an IDA 6 method, while keeping IDA 7 calling IDA 7 method
+        # intact.
         def idasix_get_name_6(*args):
             if len(args) == 1:
                 args = [-1] + args
-            return ida_name.get_name(*args)
+            return get_name_original(*args)
 
         # Override real IDA API functions with the correct patch based on IDA
         # version. In case of IDA < 6.95, changing the function in the ida_name
