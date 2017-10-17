@@ -27,7 +27,14 @@ elif IDA_SDK_VERSION < 690:
     QtWidgets = QtGui
     _ = QtCore
 
+# Create definitions for used ida modules. They'll actually be imported by
+# the following version based import resolution code. This is for automated
+# code analysis
+ida_idaapi = None
+ida_kernwin = None
+ida_name = None
 
+# resolve ida module names based on version.
 modules_list = ['ida_allins', 'ida_area', 'ida_auto', 'ida_bytes', 'ida_dbg',
                 'ida_diskio', 'ida_entry', 'ida_enum', 'ida_expr', 'ida_fixup',
                 'ida_fpro', 'ida_frame', 'ida_funcs', 'ida_gdl', 'ida_graph',
@@ -38,19 +45,20 @@ modules_list = ['ida_allins', 'ida_area', 'ida_auto', 'ida_bytes', 'ida_dbg',
                 'ida_search', 'ida_segment', 'ida_srarea', 'ida_strlist',
                 'ida_struct', 'ida_typeinf', 'ida_ua', 'ida_xref']
 if IDA_SDK_VERSION >= 695:
-    import ida_idaapi
-    import ida_pro
-    import ida_kernwin
     for module in modules_list:
-        globals()[module] = __import__(module)
+        try:
+            imported_module = __import__(module)
+        except ImportError:
+            import idaapi
+            imported_module = idaapi
+        globals()[module] = imported_module
 elif IDA_SDK_VERSION < 695:
+    # this allows code written for IDA>6.95 (where idaapi is split to multiple
+    # modules) to function under ida versions below 6.95, by mapping all module
+    # names to the idaapi (which will hopefully expose the required api).
     import sys
     import idaapi
 
-    ida_idaapi = idaapi
-    ida_pro = idaapi
-    ida_kernwin = idaapi
-    ida_name = idaapi
     for module in modules_list:
         sys.modules[module] = idaapi
 
