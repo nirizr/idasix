@@ -154,12 +154,11 @@ class Fix(object):
         `QtCore.pyqtSignal` and `QtCore.pyqtSlot`. This fix makes sure
         `Qtcore.Signal` and `QtCore.Slot` are always available.
 
-        While pyqt4 and pyside are equivalent, they are different implementations.
-        Therefore some slight variations and bugs may manifest in one but not the
-        other. An example of this is pyside's buggy handling of callback closures.
+        While pyqt4 and pyside are equivalent, they are different
+        implementations. Therefore some slight variations and bugs may manifest
+        in one but not the other. An example of this is pyside's buggy handling
+        of callback closures.
         """
-
-        class idasix_
 
         if IDA_SDK_VERSION >= 700:
             # pyqt5 is available
@@ -176,23 +175,26 @@ class Fix(object):
                 pysideSignalInstance = QtCore.Signal(dict)
 
                 def __init__(self, *args, **kwargs):
-                  self.pysideSignal_obj = self.pysideSignal_cls(*args, **kwargs)
+                  self.pysideSignal_obj = self.pysideSignal_cls(*args,
+                                                                **kwargs)
 
                 def __getattr__(self, attr):
-                  print(self, self.pysideSignalInstance, attr)
+                  # print(self, self.pysideSignalInstance, attr)
                   return getattr(self.pysideSignal_obj, attr)
 
                 def connect(self, callback, *w_args, **w_kwargs):
-                  print(self, callback)
-                  wrapped_callback = lambda *args, **kwargs: callback(*args, **kwargs)
-                  return self.pysideSignal_obj.connect(wrapped_callback, *w_args, **w_kwargs)
+                  # print(self, callback)
+                  wrapped_callback = lambda *args, **kwargs: callback(*args,
+                                                                      **kwargs)
+                  return self.pysideSignal_obj.connect(wrapped_callback,
+                                                       *w_args, **w_kwargs)
 
-              QtCore.Signal = pysideSignal_wrapper
-              print(pysideSignal_wrapper.pysideSignalInstance, type(pysideSignal_wrapper.pysideSignalInstance))
-              i = pysideSignal_wrapper()
-              print(i, type(i))
-              print(i.connect)
-              i.connect = None
+            QtCore.Signal = pysideSignal_wrapper
+            # print(pysideSignal_wrapper.pysideSignalInstance, type(pysideSignal_wrapper.pysideSignalInstance))
+            # i = pysideSignal_wrapper()
+            # print(i, type(i))
+            # print(i.connect)
+            # i.connect = None
 
 
     @staticmethod
