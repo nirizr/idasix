@@ -120,15 +120,16 @@ class Fix(object):
             return
 
         # this makes sure we have an `object` inheriting action_handler_t
-        # regardless of version
+        # only once, regardless of regardless of version or anyone else
+        # doing something similar before us
         if issubclass(ida_kernwin.action_handler_t, object):
-            action_handler_t_obj = ida_kernwin.action_handler_t
-        else:
-            class action_handler_t_obj(object,  # noqa: N801
-                                       ida_kernwin.action_handler_t):
-                """A base object created by `idasix.Fix.actionhandlerobject` to
-                inherit `object`."""
-                pass
+            return
+
+        class action_handler_t_obj(object,  # noqa: N801
+                                   ida_kernwin.action_handler_t):
+            """A base object created by `idasix.Fix.actionhandlerobject` to
+            inherit `object`."""
+            pass
 
         # this makes sure object will not be inherited for a second time, which
         # is an issue for certain ida versions.
